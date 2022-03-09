@@ -1,0 +1,7 @@
+Please install the following packages:
+Fitter
+river
+PyLaTeX
+latexmk (use "sudo apt-get install latexmk")
+texlive-latex-extra (use "sudo apt-get install -y texlive-latex-extra")
+pdflatex
