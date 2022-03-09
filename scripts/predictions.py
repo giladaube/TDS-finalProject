@@ -275,7 +275,7 @@ class PredictDistribution:
       ### PREDICTION ###
       prediction = output.max(1, keepdim=True)[1]
 
-      self.predictions[feature[0]] = [self.distributions[prediction], feature[1]]
+      self.predictions[feature[0][0]] = [self.distributions[prediction], feature[1][0]]
     
     current = []
     future = []

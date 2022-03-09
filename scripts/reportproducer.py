@@ -24,7 +24,6 @@ def createReport(featuresToBlame, predictions):
 
   with doc.create(Section('Features to Blame')):
       doc.append(f'We detected {len(featuresToBlame)} features with different distribution after the drift. The blamed features and their old & new distributions are in the following table:')
-      doc.append(Command('linebreak'))
   
   doc.append(NoEscape(r'\begin{center}'))
   
@@ -39,19 +38,16 @@ def createReport(featuresToBlame, predictions):
       table.add_row((feature_name, distributionBefore, distributionAfter))
   
   doc.append(NoEscape(r'\end{center}'))
-  doc.append(Command('linebreak'))
 
   with doc.create(Section('Future Distributions')):
     doc.append(f'We predict distribution for every feature, here are the results:')
-    doc.append(Command('linebreak'))
-  
   doc.append(NoEscape(r'\begin{center}'))
   
-  with doc.create(LongTable('p{0.3\\textwidth}|p{0.3\\textwidth}')) as table:
-    table.add_row(('Feature', 'Predict Distribution'))
+  with doc.create(LongTable('p{0.3\\textwidth}|p{0.3\\textwidth}|p{0.3\\textwidth}')) as table:
+    table.add_row(('Feature', 'Current Distribution', 'Predict Distribution'))
     for feature_name in predictions:
-      distribution = predictions.get(feature_name)
+      currentDistribution, predictDistribution = predictions.get(feature_name)
       table.add_hline()
-      table.add_row((feature_name, distribution))
+      table.add_row((feature_name, currentDistribution, predictDistribution))
   doc.append(NoEscape(r'\end{center}'))
-  doc.generate_pdf('report', clean_tex=False)
+  doc.generate_pdf('report', clean_tex=True, compiler='pdflatex')
