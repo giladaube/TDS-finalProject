@@ -2,7 +2,7 @@
 
 Yahel Jacobs & Gilad Daube
 ## Final Project document
-You can find the Tabular Science Course's final project [here]()
+You can find the Tabular Science Course's final project [here](https://github.com/giladaube/TDS-finalProject/blob/main/TDS___final_project.pdf)
 
 ### Requirements
 Please pre-install all the required packages mentioned [here](https://github.com/giladaube/TDS-finalProject/blob/3c15f4c39888e4114f651424ecfa19f59bcf8611/requirements.txt).
