@@ -13,4 +13,4 @@ We also experiment on the following datasets:
 If you like to use one of them, please add the CSV files to `./data` folder and add the non-numeric columns to `COLUMNS_TO_REMOVE` (at the head of the notebook).
 
 ## Results
-You can find the report results here
+You can find the report results [here](https://github.com/giladaube/TDS-finalProject/blob/9632462eb09b39bf9942a78ba1ab613a8a7e7f42/report.pdf)
