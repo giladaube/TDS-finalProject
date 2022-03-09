@@ -32,23 +32,28 @@ def normalize(data):
       data.div_(std)
   return data
 
-def makeDatasets(data, batch_s):
-  # Split dataset to train and validation
-  train_size = int(len(data) * 0.9)
-  validation_size = len(data) - train_size
-  train_dataset, val_dataset = torch_data.random_split(data, [train_size, validation_size])
+def makeDatasets(trainLoader, testLoader, train_batch_size=4, test_batch_size=1):
+  # Split loader to train and validation
+  train_size = int(len(trainLoader) * 0.9)
+  validation_size = len(trainLoader) - train_size
+  train_loader, val_loader = torch_data.random_split(trainLoader, [train_size, validation_size])
 
-  # Create train loader
-  train_loader = torch_data.DataLoader(
-        train_dataset, batch_size=batch_s, shuffle=True,
+  # Create train dataset
+  train_dataset = torch_data.DataLoader(
+        train_loader, batch_size=train_batch_size, shuffle=True,
         num_workers=2, pin_memory=True, sampler=None)
 
-  # Create validation loader
-  val_loader = torch_data.DataLoader(
-        val_dataset, batch_size=batch_s, shuffle=True,
+  # Create validation dataset
+  val_dataset = torch_data.DataLoader(
+        val_loader, batch_size=train_batch_size, shuffle=True,
         num_workers=2, pin_memory=True, sampler=None)
-
-  return train_loader, val_loader
+  
+  # Create test dataset
+  test_dataset = torch_data.DataLoader(
+        testLoader, batch_size=test_batch_size, shuffle=False,
+        num_workers=2, pin_memory=True, sampler=None)
+  
+  return train_dataset, val_dataset, test_dataset
 
 
 ## Classes
@@ -83,14 +88,14 @@ class TestDataLoaderClass(torch_data.Dataset):
     self.test_data = test_data
 
   def __getitem__(self, index):
-    # extract data and target distribution from given train data
-    data, label = self.train_data[index]
+    # extract data and feature name from given test data
+    data, feature_name = self.test_data[index]
 
     # prepare data to use on module    
     data = data.resize_((1, 64))
     data = normalize(data)
 
-    return data, label
+    return data, feature_name
   def __len__(self):
     return len(self.test_data)
 
@@ -146,28 +151,35 @@ class PredictDistributionModel(nn.Module):
 
 # use machine learning to predict distributions
 class PredictDistribution:
-  def __init__(self, data, testData, distributions, lr=0.000001 ,batch_size=1):
-    self.data = data
+  def __init__(self, trainData, testData, distributions, lr=0.000001, train_batch_size=4, test_batch_size=1):
+    # data
+    self.trainData = trainData
     self.testData = testData
     self.distributions = distributions
-    self.t_data = DataLoaderClass(train_data=self.data, distributions_opt=self.distributions)
-    self.test_data = TestDataLoaderClass(test_data=self.testData)
-    self.batch_size = batch_size
+    self.train_batch_size = train_batch_size
+    self.test_batch_size = test_batch_size
     self.lr = lr
     self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    self.train_loader, self.val_loader =  makeDatasets(self.t_data, self.batch_size)
-    self.test_loader =  torch_data.DataLoader(
-        self.test_data, batch_size=1, shuffle=False,
-        num_workers=2, pin_memory=True, sampler=None)
+
+    # loaders
+    self.train_loader = DataLoaderClass(train_data=self.trainData, distributions_opt=self.distributions)
+    self.test_loader = TestDataLoaderClass(test_data=self.testData)
+    
+    # datasets
+    self.train_dataset, self.val_dataset, self.test_dataset = makeDatasets(trainLoader=self.train_loader, testLoader=self.test_loader, train_batch_size=self.train_batch_size, test_batch_size=self.test_batch_size)
+
+    # init model and optimizer
     self.predictiveModel = PredictDistributionModel(input_size=64, distributions_size=len(self.distributions)).to(self.device)
     self.optimizerModel = torch.optim.Adam(self.predictiveModel.parameters(), lr = self.lr)
+    
+    # test's results    
     self.predictions = {}
   
-  def trainP(self):
+  def private_train(self):
     train_loss = 0
     correct = 0
     self.predictiveModel.train()
-    for batch_idx, (data, labels) in enumerate(self.train_loader):
+    for batch_idx, (data, labels) in enumerate(self.train_dataset):
       # move data to device
       data = data.to(self.device)
       labels = labels.to(self.device)
@@ -190,21 +202,19 @@ class PredictDistribution:
 
       ### Update ###
       self.optimizerModel.step()
-    return train_loss / len(self.train_loader.dataset), correct / len(self.train_loader.dataset)
+    return train_loss / len(self.train_dataset.dataset), correct / len(self.train_dataset.dataset)
 
-  def validationP(self):
+  def private_validation(self):
     validation_loss = 0
     correct = 0
     self.predictiveModel.eval()
-    for batch_idx, (data, labels) in enumerate(self.val_loader):
+    for batch_idx, (data, labels) in enumerate(self.val_dataset):
       # move data to device
       data = data.to(self.device)
       labels = labels.to(self.device)
 
       ### Forward ###
       output = self.predictiveModel(data)
-      # print(f'labels: {labels}')
-      # print(f'output: {output}')
 
       ### LOSS ###
       validation_loss += F.nll_loss(output, labels, reduction='sum').item()  # sum up
@@ -213,10 +223,9 @@ class PredictDistribution:
       prediction = output.max(1, keepdim=True)[1]
       correct += prediction.eq(labels.view_as(prediction)).cpu().sum()
   
-    return validation_loss / len(self.val_loader.dataset), correct / len(self.val_loader.dataset)
+    return validation_loss / len(self.val_dataset.dataset), correct / len(self.val_dataset.dataset)
 
   def train(self, EPOCHS=200):
-    # min_loss = 1000
     train_loss = np.array([])
     train_accuracy = np.array([])
     val_loss = np.array([])
@@ -226,19 +235,15 @@ class PredictDistribution:
     for epoch in range(EPOCHS):
       epochs = np.append(epochs, epoch)
       ### train ###
-      loss, accuracy = self.trainP()
+      loss, accuracy = self.private_train()
       train_loss = np.append(train_loss, loss)
       train_accuracy = np.append(train_accuracy, accuracy)
 
       ### validation ###
-      loss, accuracy = self.validationP()
+      loss, accuracy = self.private_validation()
       val_loss = np.append(val_loss, loss)
       val_accuracy = np.append(val_accuracy, accuracy)
       print(f'loss: {loss}, accuracy: {accuracy}')
-
-      # if loss < min_loss:
-      #   min_loss = loss
-      #   torch.save(model.state_dict(), 'MODEL_PATH')
 
     # plot avg loss per epoch
     plt.title(f'avg loss per epoch')
@@ -261,9 +266,10 @@ class PredictDistribution:
   # predict distributions for each feature
   def predict(self):
     self.predictiveModel.eval()
-    for batch_idx, (data, labels) in enumerate(self.test_loader):
+    for batch_idx, (data, feature_name) in enumerate(self.test_dataset):
       # move data to device
       data = data.to(self.device)
+      feature_name = feature_name.to(self.device)
 
       ### Forward ###
       output = self.predictiveModel(data)
@@ -271,6 +277,9 @@ class PredictDistribution:
       ### PREDICTION ###
       prediction = output.max(1, keepdim=True)[1]
 
-      self.predictions[labels] = self.distributions[prediction]
-      print(f'{labels}:  prediction={prediction}  ')
-    return self.predictions
+      self.predictions[feature_name] = self.distributions[prediction]
+    
+    print(f'** Predict Feature Distribution **')
+    results = {'Feature': self.predictions.keys(), 'Prediction': self.predictions.values()}
+    results = pd.DataFrame(data=results)
+    return self.predictions, results

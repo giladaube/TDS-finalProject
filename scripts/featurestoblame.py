@@ -53,6 +53,6 @@ class FeaturesToBlame:
     for feature in self.FTB:
       before.append(self.FTB.get(feature)[0])
       after.append(self.FTB.get(feature)[1])
-    data = {'feature': self.FTB.keys(), 'before': before, 'after': after}
+    data = {'Feature': self.FTB.keys(), 'Before': before, 'After': after}
     results = pd.DataFrame(data=data)
     return self.FTB, results

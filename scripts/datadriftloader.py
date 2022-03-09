@@ -36,9 +36,12 @@ def findOutDistribution(data, distributions_opt):
 
 class DataDriftLoader:
   def __init__(self, data_path, distributions):
+    # data
     self.data_path = data_path
     self.dataset = pd.read_csv(self.data_path)
     self.distributions = distributions
+
+    # results
     self.drifts = {}
     self.before = None
     self.after = None
@@ -91,16 +94,17 @@ class DataDriftLoader:
         data_ = torch.tensor(drift_data.astype(np.float32).values)
         data_ = torch.reshape(data_, (1, len(data_)))
         self.trainData.append([data_, distribution])
-    # return list of data with labels
+    # return list of train data with labels
     return self.trainData
 
   def getTestData(self):
+    # split test data by features 
     for feature_name in self.dataset.columns:
-      feature_values = self.dataset[feature_name].to_numpy()
+      feature_values = self.dataset[feature_name]
 
       # add to test data list
       data_ = torch.tensor(feature_values.astype(np.float32).values)
       data_ = torch.reshape(data_, (1, len(data_)))
       self.testData.append([data_, feature_name])
-    # return list of data with labels
+    # return list of test data with feature's name
     return self.testData

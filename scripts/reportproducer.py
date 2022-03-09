@@ -29,7 +29,7 @@ def createReport(featuresToBlame, predictions):
   doc.append(NoEscape(r'\begin{center}'))
   
   with doc.create(LongTable('p{0.3\\textwidth}|p{0.3\\textwidth}|p{0.3\\textwidth}')) as table:
-    table.add_row((MultiRow(2, data=NoEscape('Feature name')), MultiColumn(2, data='Distribution'),))
+    table.add_row((MultiRow(2, data=NoEscape('Feature')), MultiColumn(2, data='Distribution'),))
     table.add_hline(2,3)
     table.add_row(('', 'Before', 'After'))
     for feature_name in featuresToBlame:
@@ -48,7 +48,7 @@ def createReport(featuresToBlame, predictions):
   doc.append(NoEscape(r'\begin{center}'))
   
   with doc.create(LongTable('p{0.3\\textwidth}|p{0.3\\textwidth}')) as table:
-    table.add_row(('Feature name', 'Predict Distribution'))
+    table.add_row(('Feature', 'Predict Distribution'))
     for feature_name in predictions:
       distribution = predictions.get(feature_name)
       table.add_hline()
