@@ -100,11 +100,12 @@ class DataDriftLoader:
   def getTestData(self):
     # split test data by features 
     for feature_name in self.dataset.columns:
-      feature_values = self.dataset[feature_name]
+      feature_values = self.dataset[feature_name].values
+      distribution, values = findOutDistribution(feature_values, self.distributions).popitem()
 
       # add to test data list
-      data_ = torch.tensor(feature_values.astype(np.float32).values)
+      data_ = torch.tensor(feature_values.astype(np.float32))
       data_ = torch.reshape(data_, (1, len(data_)))
-      self.testData.append([data_, feature_name])
+      self.testData.append([data_, (feature_name, distribution)])
     # return list of test data with feature's name
     return self.testData

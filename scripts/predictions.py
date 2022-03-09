@@ -265,10 +265,9 @@ class PredictDistribution:
   # predict distributions for each feature
   def predict(self):
     self.predictiveModel.eval()
-    for batch_idx, (data, feature_name) in enumerate(self.test_dataset):
+    for batch_idx, (data, feature) in enumerate(self.test_dataset):
       # move data to device
       data = data.to(self.device)
-      feature_name = feature_name.to(self.device)
 
       ### Forward ###
       output = self.predictiveModel(data)
@@ -276,9 +275,15 @@ class PredictDistribution:
       ### PREDICTION ###
       prediction = output.max(1, keepdim=True)[1]
 
-      self.predictions[feature_name] = self.distributions[prediction]
+      self.predictions[feature[0]] = [self.distributions[prediction], feature[1]]
     
-    print(f'** Predict Feature Distribution **')
-    results = {'Feature': self.predictions.keys(), 'Prediction': self.predictions.values()}
+    current = []
+    future = []
+    for feature in self.predictions:
+      current.append(self.predictions.get(feature)[0])
+      future.append(self.predictions.get(feature)[1])
+    
+    print(f'** Predict Feature Distributions **')
+    results = {'Feature': self.predictions.keys(), 'Current': current, 'Prediction': future}
     results = pd.DataFrame(data=results)
     return self.predictions, results
