@@ -3,7 +3,7 @@
 Yahel Jacobs & Gilad Daube
 
 ### Requirements
-Please pre-install all the required packages mentioned [here].
+Please pre-install all the required packages mentioned [here](https://github.com/giladaube/TDS-finalProject/blob/3c15f4c39888e4114f651424ecfa19f59bcf8611/requirements.txt).
 
 ## About the Data
 We added here only one csv file from [*Stock Market Dataset*](https://www.kaggle.com/jacksoncrow/stock-market-dataset).
