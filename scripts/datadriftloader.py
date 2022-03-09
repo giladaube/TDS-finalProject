@@ -16,7 +16,7 @@ import torch
 
 # detect and split given data by drifts
 def detect_drifts(data):
-  drift_detector = drift.ADWIN()
+  drift_detector = drift.ADWIN(delta=0.05)
   drifts = []
   for index, value in enumerate(data):
     # Data is processed one sample at a time
