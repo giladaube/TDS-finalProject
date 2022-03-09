@@ -1,6 +1,6 @@
 # TDS-finalProject
 
-Yahel Jacobs and Gilad Daube
+Yahel Jacobs & Gilad Daube
 
 ## About the Data
 We added here only one csv file from [*Stock Market Dataset*](https://www.kaggle.com/jacksoncrow/stock-market-dataset).
@@ -11,3 +11,6 @@ We also experiment on the following datasets:
 3. [NYC Subway Traffic](https://www.kaggle.com/eddeng/nyc-subway-traffic-data-20172021)
 
 If you like to use one of them, please add the CSV files to `./data` folder and add the non-numeric columns to `COLUMNS_TO_REMOVE` (at the head of the notebook).
+
+## Results
+You can find the report results here
