@@ -243,7 +243,6 @@ class PredictDistribution:
       loss, accuracy = self.private_validation()
       val_loss = np.append(val_loss, loss)
       val_accuracy = np.append(val_accuracy, accuracy)
-      print(f'loss: {loss}, accuracy: {accuracy}')
 
     # plot avg loss per epoch
     plt.title(f'avg loss per epoch')
